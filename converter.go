@@ -32,31 +32,26 @@ func formatGoogleCalendar(data []day) [][]string {
 		"Subject", "Start Date", "Start Time", "End Date", "End Time",
 		"All Day Event", "Description", "Location", "Private",
 	}
-	var columns = 0
-
-	for _, d := range data {
-		if d.DayType == OTHER {
-			continue
-		}
-		columns += 1
-	}
+	var columns = len(header)
 
 	result := make([][]string, len(data)+1) // size + header
 	result[0] = header
-	j := 0
+	j := 1
 
 	for i := 1; i < len(result); i++ {
 		r := make([]string, columns)
-		d := data[j]
+		d := data[i-1]
 
 		add := true
 
+		//fmt.Printf("Processing day %s: ", d.Date.Format("01/02/2006"))
+
 		switch d.DayType {
 		case ETU:
-			r[7] = "Mind7"
+			r[7] = "Université de Strasbourg"
 			break
 		case WORK:
-			r[7] = "Université"
+			r[7] = "Mind7 Consulting"
 			break
 		case HOLIDAY:
 			day := d.Date.Day()
@@ -65,29 +60,37 @@ func formatGoogleCalendar(data []day) [][]string {
 			vDay, vMonth := getVendrediSaint(d.Date)
 
 			if (vDay == day && vMonth == month) || (day == 26 && month == time.December) {
-				r[7] = "Mind7"
+				r[7] = "Mind7 Consulting"
 			} else {
 				add = false
 			}
-
+			break
+		default:
+			add = false
+			break
 		}
 
 		if !add {
+			//fmt.Printf("Day not added : %s\n", d.Date.Format("01/02/2006"))
 			continue
 		}
 
 		dateLayout := "01/02/2006"
-		timeLayout := "03:04 PM"
+		// timeLayout := "03:04 PM"
 
 		date := d.Date.Format(dateLayout)
 
-		r[0] = "Subject"
+		if r[7] == "Mind7 Consulting" {
+			r[0] = "Présent"
+		} else {
+			r[0] = "Absent"
+		}
 		r[1] = date
-		r[2] = d.Date.Format(timeLayout)
+		r[2] = "09:30 AM"
 		r[3] = date
-		r[4] = d.Date.Format(timeLayout)
+		r[4] = "06:00 PM"
 		r[5] = "False"
-		r[6] = "This is a description"
+		r[6] = ""
 		r[8] = "False"
 
 		result[j] = r
